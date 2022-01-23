@@ -83,7 +83,7 @@ if __name__ == "__main__":
     last_statuses = dict()
     while True:
         wait = 600
-        for acc in ACCOUNTS[1:]:
+        for acc in ACCOUNTS:
             try:
                 status = get_status(acc['credentials'])
                 status['username'] = acc['username']
