@@ -61,10 +61,10 @@ def get_status(credentials):
 def send_to_tg(st):
     bot = telebot.TeleBot(BOT_TOKEN)
     msg = f'Username: {st["username"]}\n' \
-          f'Status: *{st["status"]}*\n' \
+          f'Status: <b>{st["status"]}</b>\n' \
           f'Topic: {st["topic"]}\n' \
           f'Puzzles: {st["puzzles"]}'
-    bot.send_message(USER_ID, msg, parse_mode='Markdown')
+    bot.send_message(USER_ID, msg, parse_mode='html')
     bot.stop_bot()
 
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     last_statuses = dict()
     while True:
         wait = 600
-        for acc in ACCOUNTS:
+        for acc in ACCOUNTS[1:]:
             try:
                 status = get_status(acc['credentials'])
                 status['username'] = acc['username']
