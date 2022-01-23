@@ -22,7 +22,7 @@ def get_status(credentials):
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
     logger.debug('starting driver')
-    driver = webdriver.Chrome(executable_path='chromedriver97', chrome_options=chrome_options)
+    driver = webdriver.Chrome(executable_path=f'{os.getcwd()}/chromedriver97', chrome_options=chrome_options)
     time.sleep(1)
 
     logger.debug('getting page')
@@ -78,6 +78,7 @@ def process_status(st, last_statuses):
 if __name__ == "__main__":
     BOT_TOKEN = os.environ['BOT_TOKEN']
     USER_ID = int(os.environ['USER_ID'])
+    print((os.environ['ACCOUNTS']))
     ACCOUNTS = json.loads(os.environ['ACCOUNTS'])
     last_statuses = dict()
     while True:
