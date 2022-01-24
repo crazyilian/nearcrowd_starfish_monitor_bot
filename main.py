@@ -28,6 +28,7 @@ def get_status(credentials, username):
     logger.debug('getting page')
     driver.get("https://nearcrowd.com/starfish")
     logger.debug('passing credentials')
+
     for key in credentials:
         driver.execute_script("window.localStorage.setItem(arguments[0], arguments[1]);", key, credentials[key])
     time.sleep(1)
@@ -73,14 +74,8 @@ def get_status(credentials, username):
     return res
 
 
-def send_to_tg(st):
+def send_to_tg(msg):
     bot = telebot.TeleBot(BOT_TOKEN)
-    msg = f'Username: {st["username"]}\n' \
-          f'Status: <b>{st["status"]}</b>\n' \
-          f'Topic: {st["topic"]}\n' \
-          f'Batch: {st["batch"]}\n' \
-          f'Reward: {st["reward"]}\n' \
-          f'Puzzles: {st["puzzles"]}'
     bot.send_message(USER_ID, msg, parse_mode='html')
     bot.stop_bot()
 
@@ -89,7 +84,15 @@ def process_status(st, last_statuses):
     if last_statuses.get(st['username'], None) == st:
         return
     last_statuses[st['username']] = st
-    send_to_tg(st)
+
+    msg = f'Username: {st["username"]}\n' \
+          f'Status: <b>{st["status"]}</b>\n' \
+          f'Topic: {st["topic"]}\n' \
+          f'Batch: {st["batch"]}\n' \
+          f'Reward: {st["reward"]}\n' \
+          f'Puzzles: {st["puzzles"]}'
+
+    send_to_tg(msg)
 
 
 if __name__ == "__main__":
@@ -106,6 +109,6 @@ if __name__ == "__main__":
                 logger.debug(status)
                 process_status(status, last_statuses)
             except Exception as e:
-                logger.debug(f'EXCEPTION: {e}')
+                logger.exception("EXCEPTION")
                 wait = 120
         time.sleep(wait)
