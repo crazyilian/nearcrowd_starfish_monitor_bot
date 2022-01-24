@@ -78,8 +78,7 @@ def process_status(st, last_statuses):
 if __name__ == "__main__":
     BOT_TOKEN = os.environ['BOT_TOKEN']
     USER_ID = int(os.environ['USER_ID'])
-    print((os.environ['ACCOUNTS']))
-    ACCOUNTS = json.loads(os.environ['ACCOUNTS'])
+    ACCOUNTS = json.load(open('accounts.json'))
     last_statuses = dict()
     while True:
         wait = 600
