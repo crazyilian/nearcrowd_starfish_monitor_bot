@@ -34,8 +34,8 @@ def get_status(credentials, username):
     time.sleep(1)
     logger.debug('refreshing')
     driver.refresh()
-    logger.debug('waiting 5 sec')
-    time.sleep(5)
+    logger.debug('waiting 15 sec')
+    time.sleep(15)
 
     logger.debug('processing source code')
     lastBatch = driver.find_element(By.XPATH, "(//span[@id='spanBatches']/div)[last()]")
