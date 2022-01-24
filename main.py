@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def get_status(credentials, username):
+def get_status(credentials, username, wait_page_loading):
     logger.debug(f'\n\nGET_STATUS {username}')
     chrome_options = webdriver.ChromeOptions()
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
@@ -34,8 +34,8 @@ def get_status(credentials, username):
     time.sleep(1)
     logger.debug('refreshing')
     driver.refresh()
-    logger.debug('waiting 15 sec')
-    time.sleep(15)
+    logger.debug(f'waiting {wait_page_loading} sec')
+    time.sleep(wait_page_loading)
 
     logger.debug('processing source code')
     lastBatch = driver.find_element(By.XPATH, "(//span[@id='spanBatches']/div)[last()]")
@@ -88,6 +88,7 @@ if __name__ == "__main__":
     last_statuses = dict()
     while True:
         wait = 600
+        wait_page_loading = 5
         for acc in ACCOUNTS:
             try:
                 status = get_status(acc['credentials'], acc['username'])
@@ -97,4 +98,5 @@ if __name__ == "__main__":
             except Exception as e:
                 logger.exception("EXCEPTION")
                 wait = 120
+                wait_page_loading = 20
         time.sleep(wait)
