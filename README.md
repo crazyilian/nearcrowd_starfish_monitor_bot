@@ -1,3 +1,3 @@
 # nearcrowd_starfish_monitor_bot
 
-Only I can use this bot :)
+If you really want to, you'll figure out how to use it :)
