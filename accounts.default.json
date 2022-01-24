@@ -2,15 +2,15 @@
   {
     "username": "USERNAME",
     "credentials": {
-        "near-api-js:keystore:USERNAME.near:mainnet": "local storage value 1",
-        "undefined_wallet_auth_key": "local storage value 2"
+        "local storage key 1": "local storage value 1",
+        "local storage key 2": "local storage value 2"
     }
   },
   {
     "username": "USERNAME2",
     "credentials": {
-        "near-api-js:keystore:USERNAME2.near:mainnet": "local storage value 1",
-        "undefined_wallet_auth_key": "local storage value 2"
+        "local storage key 1": "local storage value 1",
+        "local storage key 2": "local storage value 2"
     }
   }
 ]
