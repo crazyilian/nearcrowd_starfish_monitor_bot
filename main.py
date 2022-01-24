@@ -91,7 +91,7 @@ if __name__ == "__main__":
         wait_page_loading = 5
         for acc in ACCOUNTS:
             try:
-                status = get_status(acc['credentials'], acc['username'])
+                status = get_status(acc['credentials'], acc['username'], wait_page_loading)
                 status['username'] = acc['username']
                 logger.debug(status)
                 process_status(status, last_statuses)
