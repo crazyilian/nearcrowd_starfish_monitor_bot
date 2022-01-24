@@ -52,7 +52,22 @@ def get_status(credentials, username):
     logger.debug(f'puzzles: {puzzles}')
     puzzles = puzzles[0]
 
-    res = {'status': status, 'topic': topic, 'puzzles': puzzles}
+    batch = re.findall(r'Batch (\d+)', source, re.DOTALL)
+    logger.debug(f'batch: {batch}')
+    batch = batch[0]
+
+    reward = re.findall(r'Reward per puzzle:\s*<b>(.*?)</b>', source, re.DOTALL)
+    logger.debug(f'reward: {reward}')
+    reward = reward[0]
+
+    reward = reward.strip().split()
+    currency = reward[0]
+    reward_per_one = float(reward[-1])
+    number_of_puzzles = int(puzzles)
+    reward_for_all = round(reward_per_one * number_of_puzzles, 2)
+    reward = f'{currency} {reward_per_one} — {currency} {reward_for_all} in total'
+
+    res = {'status': status, 'topic': topic, 'puzzles': puzzles, 'reward': reward, 'batch': batch}
     logger.debug('closing driver')
     driver.close()
     return res
@@ -63,6 +78,8 @@ def send_to_tg(st):
     msg = f'Username: {st["username"]}\n' \
           f'Status: <b>{st["status"]}</b>\n' \
           f'Topic: {st["topic"]}\n' \
+          f'Batch: {st["batch"]}\n' \
+          f'Reward: {st["reward"]}\n' \
           f'Puzzles: {st["puzzles"]}'
     bot.send_message(USER_ID, msg, parse_mode='html')
     bot.stop_bot()
