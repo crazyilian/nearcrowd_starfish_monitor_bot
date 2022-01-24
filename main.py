@@ -93,9 +93,9 @@ def process_status(st, last_statuses):
 
 
 if __name__ == "__main__":
-    BOT_TOKEN = os.environ['BOT_TOKEN']
-    USER_ID = int(os.environ['USER_ID'])
-    ACCOUNTS = json.load(open('accounts.json'))
+    BOT_TOKEN = os.environ['BOT_TOKEN']  # Make sure you have a chat with this bot
+    USER_ID = int(os.environ['USER_ID'])  # Write to @RawDataBot and get your ID or put ID of your chat with this bot
+    ACCOUNTS = json.load(open('accounts.json'))  # Format as in accounts.default.json
     last_statuses = dict()
     while True:
         wait = 600
