@@ -41,25 +41,11 @@ def get_status(credentials, username):
     lastBatch = driver.find_element(By.XPATH, "(//span[@id='spanBatches']/div)[last()]")
     source = lastBatch.get_attribute('innerHTML')
 
-    status = re.findall(r'Status:\s*(<b>)?\s*(.*?)\s*(</b>)?\s*<br>', source, re.DOTALL)
-    logger.debug(f'status: {status}')
-    status = status[0][1]
-
-    topic = re.findall(r'following theme:\s*(<b>)?\s*(.*?)\s*(</b>)?\s*<br>', source, re.DOTALL)
-    logger.debug(f'topic: {topic}')
-    topic = topic[0][1]
-
-    puzzles = re.findall(r'Number of puzzles:\s*<b>(.*?)</b>', source, re.DOTALL)
-    logger.debug(f'puzzles: {puzzles}')
-    puzzles = puzzles[0]
-
-    batch = re.findall(r'Batch (\d+)', source, re.DOTALL)
-    logger.debug(f'batch: {batch}')
-    batch = batch[0]
-
-    reward = re.findall(r'Reward per puzzle:\s*<b>(.*?)</b>', source, re.DOTALL)
-    logger.debug(f'reward: {reward}')
-    reward = reward[0]
+    status = re.findall(r'Status:\s*(<b>)?\s*(.*?)\s*(</b>)?\s*<br>', source, re.DOTALL)[0][1]
+    topic = re.findall(r'following theme:\s*(<b>)?\s*(.*?)\s*(</b>)?\s*<br>', source, re.DOTALL)[0][1]
+    puzzles = re.findall(r'Number of puzzles:\s*<b>(.*?)</b>', source, re.DOTALL)[0]
+    batch = re.findall(r'Batch (\d+)', source, re.DOTALL)[0]
+    reward = re.findall(r'Reward per puzzle:\s*<b>(.*?)</b>', source, re.DOTALL)[0]
 
     reward = reward.strip().split()
     currency = reward[0]
