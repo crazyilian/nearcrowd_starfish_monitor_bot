@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def get_status(credentials):
-    logger.debug('\n\nGET_STATUS')
+def get_status(credentials, username):
+    logger.debug(f'\n\nGET_STATUS {username}')
     chrome_options = webdriver.ChromeOptions()
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     chrome_options.add_argument("--headless")
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         wait = 600
         for acc in ACCOUNTS:
             try:
-                status = get_status(acc['credentials'])
+                status = get_status(acc['credentials'], acc['username'])
                 status['username'] = acc['username']
                 logger.debug(status)
                 process_status(status, last_statuses)
