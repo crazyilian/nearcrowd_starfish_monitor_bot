@@ -14,15 +14,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def get_status(credentials, username, wait_page_loading):
-    logger.debug(f'\n\nGET_STATUS {username}')
+def open_page(credentials, wait_page_loading):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
     logger.debug('starting driver')
-    driver = webdriver.Chrome(executable_path=f'{os.getcwd()}/chromedriver97', chrome_options=chrome_options)
+    driver = webdriver.Chrome(executable_path=f'{os.getcwd()}/chromedriver97', options=chrome_options)
     time.sleep(1)
 
     logger.debug('getting page')
@@ -37,11 +36,13 @@ def get_status(credentials, username, wait_page_loading):
     logger.debug(f'waiting {wait_page_loading} sec')
     time.sleep(wait_page_loading)
 
-    logger.debug('processing source code')
-    lastBatch = driver.find_element(By.XPATH, "(//span[@id='spanBatches']/div)[last()]")
-    source = lastBatch.get_attribute('innerHTML')
+    return driver
 
-    status = re.findall(r'Status:\s*(<b>)?\s*(.*?)\s*(</b>)?\s*<br>', source, re.DOTALL)[0][1]
+
+def parse_batch(source, username):
+    logger.debug(f'parsing new batch')
+
+    status = re.findall(r'Status:\s*(<b>)?\s*(<font .*?>)?\s*(.*?)\s*(</font>)?\s*(</b>)?\s*<br>', source, re.DOTALL)[0][2]
     topic = re.findall(r'following theme:\s*(<b>)?\s*(.*?)\s*(</b>)?\s*<br>', source, re.DOTALL)[0][1]
     puzzles = re.findall(r'Number of puzzles:\s*<b>(.*?)</b>', source, re.DOTALL)[0]
     batch = re.findall(r'Batch (\d+)', source, re.DOTALL)[0]
@@ -54,10 +55,26 @@ def get_status(credentials, username, wait_page_loading):
     reward_for_all = round(reward_per_one * number_of_puzzles, 2)
     reward = f'{currency} {reward_per_one} — {currency} {reward_for_all} in total'
 
-    res = {'status': status, 'topic': topic, 'puzzles': puzzles, 'reward': reward, 'batch': batch}
+    res = {'status': status, 'topic': topic, 'puzzles': puzzles, 'reward': reward, 'batch': batch, 'username': username}
+    logger.debug(f'batch {batch} parsed')
+    logger.debug(res)
+    return res
+
+
+def get_statuses(credentials, username, wait_page_loading):
+    logger.debug(f'\n\nGET_STATUSES {username}')
+    driver = open_page(credentials, wait_page_loading)
+
+    logger.debug('processing source code')
+    batches = driver.find_elements(By.XPATH, "(//span[@id='spanBatches']/div)")
+    statuses = []
+    for batch in batches:
+        source = batch.get_attribute('innerHTML')
+        statuses.append(parse_batch(source, username))
+
     logger.debug('closing driver')
     driver.close()
-    return res
+    return statuses
 
 
 def send_to_tg(msg):
@@ -67,16 +84,18 @@ def send_to_tg(msg):
 
 
 def process_status(st, last_statuses):
-    if last_statuses.get(st['username'], None) == st:
+    key = (st['username'], st['batch'])
+    if last_statuses.get(key, None) == st:
         return
+    title = 'New batch' if key not in last_statuses else 'Batch update'
     last_statuses[st['username']] = st
 
-    msg = f'Username: {st["username"]}\n' \
+    msg = f'{title} at {st["username"]}!\n\n' \
+          f'Batch: {st["batch"]}\n' \
           f'Status: <b>{st["status"]}</b>\n' \
           f'Topic: {st["topic"]}\n' \
-          f'Batch: {st["batch"]}\n' \
-          f'Reward: {st["reward"]}\n' \
-          f'Puzzles: {st["puzzles"]}'
+          f'Puzzles: {st["puzzles"]}\n' \
+          f'Reward: {st["reward"]}'
 
     send_to_tg(msg)
 
@@ -91,10 +110,9 @@ if __name__ == "__main__":
         wait_page_loading = 5
         for acc in ACCOUNTS:
             try:
-                status = get_status(acc['credentials'], acc['username'], wait_page_loading)
-                status['username'] = acc['username']
-                logger.debug(status)
-                process_status(status, last_statuses)
+                statuses = get_statuses(acc['credentials'], acc['username'], wait_page_loading)
+                for status in statuses:
+                    process_status(status, last_statuses)
             except Exception as e:
                 logger.exception("EXCEPTION")
                 wait = 120
