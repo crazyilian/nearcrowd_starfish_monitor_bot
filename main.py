@@ -88,7 +88,7 @@ def process_status(st, last_statuses):
     if last_statuses.get(key, None) == st:
         return
     title = 'New batch' if key not in last_statuses else 'Batch update'
-    last_statuses[st['username']] = st
+    last_statuses[key] = st
 
     msg = f'{title} at {st["username"]}!\n\n' \
           f'Batch: {st["batch"]}\n' \
