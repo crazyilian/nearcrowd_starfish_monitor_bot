@@ -67,6 +67,8 @@ def get_statuses(credentials, username, wait_page_loading):
 
     logger.debug('processing source code')
     batches = driver.find_elements(By.XPATH, "(//span[@id='spanBatches']/div)")
+    if len(batches) == 0:
+        raise Exception("No batches found!")
     statuses = []
     for batch in batches:
         source = batch.get_attribute('innerHTML')
