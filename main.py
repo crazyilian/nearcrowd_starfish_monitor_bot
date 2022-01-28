@@ -99,6 +99,8 @@ def process_status(st, last_statuses):
           f'Puzzles: {st["puzzles"]}\n' \
           f'Reward: {st["reward"]}'
 
+    if title.lower() == 'new batch' and st['status'].lower() == 'accepted':
+        return
     send_to_tg(msg)
 
 
