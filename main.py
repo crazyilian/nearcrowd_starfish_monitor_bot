@@ -155,6 +155,7 @@ if __name__ == "__main__":
     while True:
         wait = 600
         wait_page_loading = 5
+
         for acc in ACCOUNTS:
             try:
                 statuses = get_statuses(acc['credentials'], acc['username'], wait_page_loading)
@@ -165,6 +166,7 @@ if __name__ == "__main__":
                 wait = 120
                 wait_page_loading = 20
 
+        for acc in ACCOUNTS:
             try:
                 wallet_name = acc.get('wallet')
                 if wallet_name is not None:
@@ -174,4 +176,5 @@ if __name__ == "__main__":
                 logger.exception("EXCEPTION BALANCES")
                 wait = 120
                 wait_page_loading = 20
+
         time.sleep(wait)
