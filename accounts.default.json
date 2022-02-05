@@ -1,6 +1,7 @@
 [
   {
     "username": "USERNAME",
+    "wallet": "WALLET_NAME.near",
     "credentials": {
         "local storage key 1": "local storage value 1",
         "local storage key 2": "local storage value 2"
@@ -8,6 +9,7 @@
   },
   {
     "username": "USERNAME2",
+    "wallet": null,
     "credentials": {
         "local storage key 1": "local storage value 1",
         "local storage key 2": "local storage value 2"

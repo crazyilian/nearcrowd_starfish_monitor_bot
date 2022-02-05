@@ -6,12 +6,36 @@ import re
 import json
 import telebot
 import logging
+import requests
 
 
 logging.basicConfig()
 logging.getLogger('TeleBot').setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+def get_wallet_balance(wallet_name):
+    url = 'https://rpc.mainnet.near.org'
+    data = {
+        "method": "query",
+        "params": {
+            "request_type": "view_account",
+            "account_id": wallet_name,
+            "finality": "optimistic"
+        },
+        "id": 1,
+        "jsonrpc": "2.0"
+    }
+    resp = requests.post(url, json=data).json()
+    if 'error' in resp or 'result' not in resp:
+        raise Exception(resp)
+    res = resp['result']
+    balance = int(res['amount']) / 1e24 - res['storage_usage'] / 1e5 - 0.05
+    balance = round(balance, 2)
+    if balance == 0:    # -0.0 -> 0.0
+        balance = 0.0
+    return balance
 
 
 def open_page(credentials, wait_page_loading):
@@ -104,11 +128,30 @@ def process_status(st, last_statuses):
     send_to_tg(msg)
 
 
+def process_wallet_balance(wallet_name, balance, last_balances):
+    old_balance = last_balances.get(wallet_name, None)
+    if old_balance == balance:
+        return
+    last_balances[wallet_name] = balance
+    if old_balance is None:
+        msg = f'Balance at {wallet_name}\n' \
+              f'Ⓝ {balance}'
+    else:
+        delta = round(balance - old_balance, 2)
+        sign = '-' if delta < 0 else '+'
+        delta = abs(delta)
+        msg = f'Balance at {wallet_name}\n' \
+              f'Ⓝ {old_balance} {sign} Ⓝ {delta} = Ⓝ {balance}'
+
+    send_to_tg(msg)
+
+
 if __name__ == "__main__":
     BOT_TOKEN = os.environ['BOT_TOKEN']  # Make sure you have a chat with this bot
     USER_ID = int(os.environ['USER_ID'])  # Write to @RawDataBot and get your ID or put ID of your chat with this bot
     ACCOUNTS = json.load(open('accounts.json'))  # Format as in accounts.default.json
     last_statuses = dict()
+    last_balances = dict()
     while True:
         wait = 600
         wait_page_loading = 5
@@ -118,7 +161,17 @@ if __name__ == "__main__":
                 for status in statuses:
                     process_status(status, last_statuses)
             except Exception as e:
-                logger.exception("EXCEPTION")
+                logger.exception("EXCEPTION STATUSES")
+                wait = 120
+                wait_page_loading = 20
+
+            try:
+                wallet_name = acc.get('wallet')
+                if wallet_name is not None:
+                    balance = get_wallet_balance(wallet_name)
+                    process_wallet_balance(wallet_name, balance, last_balances)
+            except Exception as e:
+                logger.exception("EXCEPTION BALANCES")
                 wait = 120
                 wait_page_loading = 20
         time.sleep(wait)
