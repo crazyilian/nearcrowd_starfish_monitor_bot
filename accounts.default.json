@@ -1,18 +1,23 @@
-[
-  {
-    "username": "USERNAME",
-    "wallet": "WALLET_NAME.near",
-    "credentials": {
+{
+  "starfish": [
+    {
+      "username": "USERNAME",
+      "credentials": {
         "local storage key 1": "local storage value 1",
         "local storage key 2": "local storage value 2"
-    }
-  },
-  {
-    "username": "USERNAME2",
-    "wallet": null,
-    "credentials": {
+      }
+    },
+    {
+      "username": "USERNAME2",
+      "credentials": {
         "local storage key 1": "local storage value 1",
         "local storage key 2": "local storage value 2"
+      }
     }
-  }
-]
+  ],
+  "wallets": [
+    "wallet1.near",
+    "wallet2.near",
+    "wallet3.near"
+  ]
+}

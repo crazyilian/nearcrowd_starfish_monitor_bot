@@ -7,6 +7,7 @@ import json
 import telebot
 import logging
 import requests
+import heapq
 
 
 logging.basicConfig()
@@ -28,11 +29,12 @@ def get_wallet_balance(wallet_name):
         "jsonrpc": "2.0"
     }
     resp = requests.post(url, json=data).json()
+    logger.debug(f'{wallet_name} balance: {resp}')
     if 'error' in resp or 'result' not in resp:
         raise Exception(resp)
     res = resp['result']
     balance = max(0.0, int(res['amount']) / 1e24 - res['storage_usage'] / 1e5 - 0.05)
-    balance = round(balance, 2)
+    balance = round(balance, 3)
     return balance
 
 
@@ -84,7 +86,7 @@ def parse_batch(source, username):
 
 
 def get_statuses(credentials, username, wait_page_loading):
-    logger.debug(f'\n\nGET_STATUSES {username}')
+    logger.debug(f'GET_STATUSES {username}')
     driver = open_page(credentials, wait_page_loading)
 
     logger.debug('processing source code')
@@ -144,35 +146,67 @@ def process_wallet_balance(wallet_name, balance, last_balances):
     send_to_tg(msg)
 
 
+def event_id():
+    global EVENT_ID
+    EVENT_ID += 1
+    return EVENT_ID
+
+
 if __name__ == "__main__":
     BOT_TOKEN = os.environ['BOT_TOKEN']  # Make sure you have a chat with this bot
     USER_ID = int(os.environ['USER_ID'])  # Write to @RawDataBot and get your ID or put ID of your chat with this bot
     ACCOUNTS = json.load(open('accounts.json'))  # Format as in accounts.default.json
+
+    WAIT_PAGE_LOADING = {'DEFAULT': 5, 'EXCEPTION': 20}
+    WAIT_EVENT_STARFISH = {'DEFAULT': 600, 'EXCEPTION': 120}
+    WAIT_EVENT_WALLETS = {'DEFAULT': 300, 'EXCEPTION': 120}
+    EVENT_ID = 0
+
     last_statuses = dict()
     last_balances = dict()
-    while True:
-        wait = 600
-        wait_page_loading = 5
 
-        for acc in ACCOUNTS:
+    events = [(0.0, event_id(), {'type': 'starfish', 'account': acc}) for acc in ACCOUNTS['starfish']]
+    events += [(0.0, event_id(), {'type': 'wallets', 'account': acc}) for acc in ACCOUNTS['wallets']]
+    heapq.heapify(events)
+
+    while True:
+        event = heapq.heappop(events)
+        wait = max(0.0, event[0] - time.time())
+        logger.debug(f'\n\nWAITING: {wait} sec')
+        time.sleep(wait)
+        logger.debug(f'NEW EVENT: {event}\n')
+
+        ev = event[2]
+        acc_type = ev['type']
+        acc = ev['account']
+
+        if acc_type == 'starfish':
+            wait_page_loading = ev.get('wait_page_loading', WAIT_PAGE_LOADING['DEFAULT'])
             try:
                 statuses = get_statuses(acc['credentials'], acc['username'], wait_page_loading)
                 for status in statuses:
                     process_status(status, last_statuses)
             except Exception as e:
                 logger.exception("EXCEPTION STATUSES")
-                wait = 120
-                wait_page_loading = 20
+                wait_until = time.time() + WAIT_EVENT_STARFISH['EXCEPTION']
+                ev['wait_page_loading'] = WAIT_PAGE_LOADING['EXCEPTION']
+            else:
+                wait_until = time.time() + WAIT_EVENT_STARFISH['DEFAULT']
+                ev['wait_page_loading'] = WAIT_PAGE_LOADING['DEFAULT']
+            heapq.heappush(events, (wait_until, event_id(), ev))
 
-        for acc in ACCOUNTS:
+        elif acc_type == 'wallets':
             try:
-                wallet_name = acc.get('wallet')
+                wallet_name = acc
                 if wallet_name is not None:
                     balance = get_wallet_balance(wallet_name)
                     process_wallet_balance(wallet_name, balance, last_balances)
             except Exception as e:
                 logger.exception("EXCEPTION BALANCES")
-                wait = 120
-                wait_page_loading = 20
+                wait_until = time.time() + WAIT_EVENT_WALLETS['EXCEPTION']
+            else:
+                wait_until = time.time() + WAIT_EVENT_WALLETS['DEFAULT']
+            heapq.heappush(events, (wait_until, event_id(), ev))
 
-        time.sleep(wait)
+        else:
+            logger.debug(f'Unknown account type: {acc_type}')
