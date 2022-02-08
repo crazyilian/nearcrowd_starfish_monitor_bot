@@ -31,10 +31,8 @@ def get_wallet_balance(wallet_name):
     if 'error' in resp or 'result' not in resp:
         raise Exception(resp)
     res = resp['result']
-    balance = int(res['amount']) / 1e24 - res['storage_usage'] / 1e5 - 0.05
+    balance = max(0.0, int(res['amount']) / 1e24 - res['storage_usage'] / 1e5 - 0.05)
     balance = round(balance, 2)
-    if balance == 0:    # -0.0 -> 0.0
-        balance = 0.0
     return balance
 
 
