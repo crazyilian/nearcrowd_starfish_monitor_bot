@@ -137,7 +137,7 @@ def process_wallet_balance(wallet_name, balance, last_balances):
         msg = f'Balance at {wallet_name}\n' \
               f'Ⓝ {balance}'
     else:
-        delta = round(balance - old_balance, 2)
+        delta = round(balance - old_balance, 3)
         sign = '-' if delta < 0 else '+'
         delta = abs(delta)
         msg = f'Balance at {wallet_name}\n' \
