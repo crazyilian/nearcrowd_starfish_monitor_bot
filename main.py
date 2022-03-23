@@ -88,7 +88,13 @@ def process_batch(batch, last_batches, username):
         return
     last_batches[(username, index)] = info
 
-    title = ('New batch' if old_batches is None else 'Batch update') + f' at {username}!'
+    if old_batches is None:
+        if status.upper() == 'ACCEPTED':
+            return
+        title = f'New batch at {username}'
+    else:
+        title = f'Batch update at {username}'
+
     text = prettify_batch(*info)
     text = title + '\n\n' + text
     send_to_tg(text)
