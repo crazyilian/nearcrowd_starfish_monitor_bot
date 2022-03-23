@@ -170,6 +170,7 @@ if __name__ == "__main__":
     while True:
         event = heapq.heappop(events)
         wait = max(0.0, event[0] - time.time())
+        logger.debug(f'Waiting {wait}')
         time.sleep(wait)
         ev = event[2]
         acc = ev['account']
