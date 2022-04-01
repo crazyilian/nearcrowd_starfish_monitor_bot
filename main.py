@@ -137,6 +137,8 @@ def process_balance(balance, last_balances, username):
         delta = round(balance - old_balance, 3)
         sign = '-' if delta < 0 else '+'
         delta = abs(delta)
+        if delta <= 0.002:  # 0.001 - approximate price of one transaction
+            return
         text = f'Ⓝ {old_balance} {sign} Ⓝ {delta} = Ⓝ {balance}'
 
     title = f'Balance at {username}'
